@@ -15,14 +15,29 @@ import matplotlib.font_manager as mpfm
 from scipy import misc
 from PIL import Image
 
+import urllib2, urllib
+
 ACP = lambda fn: fn.decode('utf-8').encode('cp932')
 FONTJP = '/windows/fonts/HGRSMP.ttf' # HGRSKP
 IMGS = {'CIRCLE': 'Tux', 'ECB': 'Tux_ecb'}
 IMGD = '/tmp'
-# IMGPATH = lambda k: ACP(os.path.join(IMGD, 'cs_%s_58x64_c16.xpm' % IMGS[k]))
-IMGPATH = lambda k: ACP(os.path.join(IMGD, 'cs_%s.jpg' % IMGS[k]))
+IMGU = 'https://raw.githubusercontent.com/sanjonemu/pyxpm/master/res'
 
 NAXIS = 4
+
+def getURI(k):
+  if False: # test
+    return ACP(os.path.join(IMGD, 'cs_%s.jpg' % IMGS[k]))
+  b = 'cs_%s_58x64_c16.xpm' % IMGS[k]
+  p = os.path.join(IMGD, b)
+  f = open(p, 'wb')
+  try:
+    u = urllib2.urlopen('%s/%s' % (IMGU, b))
+    f.write(u.read())
+  except (Exception, ), e:
+    sys.stderr.write('\n%s\n' % repr(e))
+  f.close()
+  return p
 
 def first():
   # for display japanese
@@ -34,13 +49,13 @@ def first():
   # fontprop
   axis[0].set_title('wronskian')
 
-  axis[1].imshow(np.array(Image.open(IMGPATH('CIRCLE'))))
+  axis[1].imshow(np.array(Image.open(getURI('CIRCLE'))))
   axis[1].set_title(IMGS['CIRCLE'])
 
-  axis[2].imshow(misc.toimage(mpimg.imread(IMGPATH('ECB')), cmin=0, cmax=255))
+  axis[2].imshow(misc.toimage(mpimg.imread(getURI('ECB')), cmin=0, cmax=255))
   axis[2].set_title(IMGS['ECB'])
 
-  axis[3].imshow(mpimg.imread(IMGPATH('ECB'))) # bottom <-> top (.jpg)
+  axis[3].imshow(mpimg.imread(getURI('ECB'))) # bottom <-> top (.jpg)
   axis[3].set_title('b<->t: %s' % IMGS['ECB'])
 
   plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
