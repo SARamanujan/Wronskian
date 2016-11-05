@@ -15,6 +15,9 @@ import matplotlib.font_manager as mpfm
 from scipy import misc
 from PIL import Image
 
+sys.path.append('../../pyxpm')
+from pyxpm import xpm
+
 import urllib2, urllib
 
 ACP = lambda fn: fn.decode('utf-8').encode('cp932')
@@ -25,19 +28,24 @@ IMGU = 'https://raw.githubusercontent.com/sanjonemu/pyxpm/master/res'
 
 NAXIS = 4
 
+def getFN(k):
+  return ACP(os.path.join(IMGD, 'cs_%s.jpg' % IMGS[k]))
+
 def getURI(k):
-  if False: # test
-    return ACP(os.path.join(IMGD, 'cs_%s.jpg' % IMGS[k]))
+  s = ''
   b = 'cs_%s_58x64_c16.xpm' % IMGS[k]
-  p = os.path.join(IMGD, b)
-  f = open(p, 'wb')
   try:
     u = urllib2.urlopen('%s/%s' % (IMGU, b))
-    f.write(u.read())
+    s = u.read()
   except (Exception, ), e:
     sys.stderr.write('\n%s\n' % repr(e))
-  f.close()
-  return p
+  return s
+
+def getIm(s, a=True):
+  nda = xpm.XPM(s)
+  r, c, m = nda.shape
+  img = Image.frombuffer('RGBA', (c, r), nda, 'raw', 'BGRA', 0, 1)
+  return np.array(img) if a else img
 
 def first():
   # for display japanese
@@ -49,13 +57,16 @@ def first():
   # fontprop
   axis[0].set_title('wronskian')
 
-  axis[1].imshow(np.array(Image.open(getURI('CIRCLE'))))
+  # axis[1].imshow(np.array(Image.open(getFN('CIRCLE'))))
+  axis[1].imshow(getIm(getURI('CIRCLE')))
   axis[1].set_title(IMGS['CIRCLE'])
 
-  axis[2].imshow(misc.toimage(mpimg.imread(getURI('ECB')), cmin=0, cmax=255))
+  # axis[2].imshow(misc.toimage(mpimg.imread(getFN('ECB')), cmin=0, cmax=255))
+  axis[2].imshow(getIm(getURI('ECB'), a=True))
   axis[2].set_title(IMGS['ECB'])
 
-  axis[3].imshow(mpimg.imread(getURI('ECB'))) # bottom <-> top (.jpg)
+  # axis[3].imshow(mpimg.imread(getFN('ECB'))) # bottom <-> top (.jpg)
+  axis[3].imshow(getIm(getURI('ECB'), a=False)) # bottom <-> top (PIL.Image)
   axis[3].set_title('b<->t: %s' % IMGS['ECB'])
 
   plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
