@@ -71,9 +71,7 @@ def first():
 
   plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
     wspace=1, hspace=1)
-  plt.show()
   # fig.savefig(IMGOUT)
-  # plt.close()
 
 def draw_curve(axis, n, t, x):
   m = n % NAXIS
@@ -92,20 +90,22 @@ def draw_curve(axis, n, t, x):
 
 def draw_axis(seconds):
   plt.ion()
-  first() # includes plt.show()
+  first() # plt.figure(1)
   # plt.axis([0, 1000, 0, 1])
-  fig = plt.figure()
+  fig = plt.figure(2)
   axis = [fig.add_subplot(221 + _ % NAXIS) for _ in range(NAXIS)]
-  t = 0
-  for i in range(seconds * 10): # about seconds when time.sleep(.01)
+  def incnum(t):
+    if t >= seconds * 10: return # about seconds when .after(10, ...)
+    [ax.clear() for ax in axis if ax]
     # x = np.arange(-3.5, 7.0, 0.1)
     x = np.arange(-3.11, 3.11, 0.02)
     [draw_curve(axis, _, t, x) for _ in range(NAXIS) if _ != 2]
     # plt.pause(.01)
     plt.draw() # use 'draw' pyplot does not support 'pause' on python 2.5 ?
-    time.sleep(.01)
-    t += 1
-    [ax.clear() for ax in axis if ax]
+    fig.canvas.get_tk_widget().after(10, incnum, t + 1)
+  incnum(0)
+  plt.show()
+  plt.close('all')
   plt.ioff()
 
 def main():
