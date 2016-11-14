@@ -93,7 +93,44 @@ def draw_axis(seconds):
   first() # plt.figure(1)
   # plt.axis([0, 1000, 0, 1])
   fig = plt.figure(2)
+  canvas = fig.canvas
+  # *** ambiguous which canvas is selected -> called .after() after closed ***
+  # *** solved with .after_cancel() ***
+  # invalid command name "88887208callit"
+  #     while executing
+  # "88887208callit"
+  #     ("after" script)
   axis = [fig.add_subplot(221 + _ % NAXIS) for _ in range(NAXIS)]
+  global tm
+  tm = True # no care tm now
+  def onquit(): # not use now # matplotlib.backend_bases.CloseEvent
+    print 'test closed'
+    global tm
+    tm = False
+    tk.Toplevel().quit()
+    tk.Toplevel().destroy()
+  # canvas.mpl_connect('quit_event', onquit) # no quit_event
+  # canvas.mpl_connect('close_event', onquit) # no close_event # old version ?
+  # canvas.get_tk_widget().protocol("WM_DELETE_WINDOW", onquit) # no .protocol
+  # import Tkinter as tk
+  # tk.Toplevel().protocol("WM_DELETE_WINDOW", onquit) # OK but another root
+  # rel = canvas.get_tk_widget()
+  # tk.Toplevel(rel).protocol("WM_DELETE_WINDOW", onquit) # rel-root no event
+  def ondestroy(event):
+    print 'test destroied'
+    print event.widget # .NNNNNNNN
+    if event.widget == canvas._tkcanvas:
+      event.widget.after_cancel(tid)
+      # event.widget.unbind('<Destroy>') # needless
+  canvas.get_tk_widget().bind('<Destroy>', ondestroy, '+') # + calls prev func
+  def onresize(event):
+    print event.width, event.height
+    print event.guiEvent # None
+  canvas.mpl_connect('resize_event', onresize)
+  def ondraw(event):
+    print event.renderer # matplotlib.backends.backend_agg.RendererAgg
+    print event.guiEvent # None
+  # canvas.mpl_connect('draw_event', ondraw)
   def incnum(t):
     if t >= seconds * 10: return # about seconds when .after(10, ...)
     [ax.clear() for ax in axis if ax]
@@ -101,8 +138,9 @@ def draw_axis(seconds):
     x = np.arange(-3.11, 3.11, 0.02)
     [draw_curve(axis, _, t, x) for _ in range(NAXIS) if _ != 2]
     # plt.pause(.01)
-    fig.canvas.draw() # use 'draw' pyplot does not support 'pause' on python 2.5 ?
-    fig.canvas.get_tk_widget().after(10, incnum, t + 1)
+    canvas.draw() # use 'draw' pyplot does not support 'pause' on python 2.5 ?
+    global tid
+    if tm: tid = canvas.get_tk_widget().after(10, incnum, t + 1) # no care tm
   incnum(0)
   plt.show()
   plt.close('all')
