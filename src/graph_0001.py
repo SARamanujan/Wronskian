@@ -101,7 +101,7 @@ def draw_axis(seconds):
     x = np.arange(-3.11, 3.11, 0.02)
     [draw_curve(axis, _, t, x) for _ in range(NAXIS) if _ != 2]
     # plt.pause(.01)
-    plt.draw() # use 'draw' pyplot does not support 'pause' on python 2.5 ?
+    fig.canvas.draw() # use 'draw' pyplot does not support 'pause' on python 2.5 ?
     fig.canvas.get_tk_widget().after(10, incnum, t + 1)
   incnum(0)
   plt.show()
