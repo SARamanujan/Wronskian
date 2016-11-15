@@ -122,11 +122,11 @@ def draw_axis(seconds):
       print 'test destroied'
       print event.widget # .NNNNNNNN
       if event.widget == canvas._tkcanvas: # == tkc
-        event.widget.after_cancel(tid)
+        event.widget.after_cancel(tkc.tid)
         # event.widget.unbind('<Destroy>') # needless
     tkc.bind('<Destroy>', ondestroy, '+') # + prev func
   else:
-    tkc.bind('<Destroy>', lambda e: tkc.after_cancel(tid), '+') # + prev func
+    tkc.bind('<Destroy>', lambda e: tkc.after_cancel(tkc.tid), '+') # + prev
   def onresize(event):
     print event.width, event.height
     print event.guiEvent # None
@@ -143,11 +143,10 @@ def draw_axis(seconds):
     [draw_curve(axis, _, t, x) for _ in range(NAXIS) if _ != 2]
     # plt.pause(.01)
     canvas.draw() # use 'draw' pyplot does not support 'pause' on python 2.5 ?
-    global tid
     if False:
-      if tm: tid = tkc.after(10, incnum, t + 1) # no care tm
+      if tm: tkc.tid = tkc.after(10, incnum, t + 1) # no care tm
     else:
-      tid = tkc.after(10, incnum, t + 1)
+      tkc.tid = tkc.after(10, incnum, t + 1)
   incnum(0)
   plt.show()
   plt.close('all')
